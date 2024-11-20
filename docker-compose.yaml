@@ -55,7 +55,7 @@ services:
     container_name: superset_db
     restart: unless-stopped
     volumes:
-      - ./volumes/superset/data:/var/lib/postgresql/data
+      - db_home:/var/lib/postgresql/data
       - ./docker/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
     networks:
       - superset-net
