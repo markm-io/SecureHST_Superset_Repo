@@ -43,6 +43,7 @@ SMTP_SSL = False
 SMTP_USER = os.getenv("SMTP_USER") # use the empty string "" if using an unauthenticated SMTP server
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD") # use the empty string "" if using an unauthenticated SMTP server
 SMTP_MAIL_FROM = os.getenv("SMTP_MAIL_FROM")
+ENABLE_PROXY_FIX = True
 
 # Features Configuration
 SCREENSHOT_LOCATE_WAIT = 10

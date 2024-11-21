@@ -28,12 +28,33 @@ x-superset-depends-on: &superset-depends-on
 x-superset-volumes:
   &superset-volumes # /app/pythonpath_docker will be appended to the PYTHONPATH in the final container
   - ./docker:/app/docker
-  - ./config/superset_config_docker.py:/app/docker/superset_config_docker.py
+  - ./config/superset_config_docker.py:/app/docker/pythonpath_dev/superset_config_docker.py
   - superset_home:/app/superset_home
   - ./config/logo/custom-logo.png:/app/superset/static/assets/images/custom-logo.png
   - ./config/logo/custom-favicon.png:/app/superset/static/assets/images/custom-favicon.png
 
 services:
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=mark@securehst.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"  # Traefik dashboard
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./letsencrypt:/letsencrypt"
+    networks:
+      - traefik_net
+
   redis:
     image: redis:7
     pull_policy: always
@@ -43,6 +64,7 @@ services:
       - redis:/data
     networks:
       - superset-net
+      - traefik_net
 
   db:
     env_file:
@@ -59,6 +81,7 @@ services:
       - ./docker/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
     networks:
       - superset-net
+      - traefik_net
 
   superset:
     env_file:
@@ -75,8 +98,17 @@ services:
       - 8088:8088
     depends_on: *superset-depends-on
     volumes: *superset-volumes
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.superset.rule=Host(`superset-vista.apphst.com`)"
+      - "traefik.http.routers.superset.service=superset"
+      - "traefik.http.routers.superset.entrypoints=websecure"
+      - "traefik.http.routers.superset.tls.certresolver=le"
+      - "traefik.http.routers.superset.tls=true"
+      - "traefik.http.services.superset.loadbalancer.server.port=8088"
     networks:
       - superset-net
+      - traefik_net
 
   superset-init:
     image: *superset-image
@@ -95,6 +127,7 @@ services:
       disable: true
     networks:
       - superset-net
+      - traefik_net
 
   superset-worker:
     image: *superset-image
@@ -118,6 +151,7 @@ services:
         ]
     networks:
       - superset-net
+      - traefik_net
 
   superset-worker-beat:
     image: *superset-image
@@ -137,6 +171,7 @@ services:
       disable: true
     networks:
       - superset-net
+      - traefik_net
 
 volumes:
   superset_home:
@@ -149,3 +184,5 @@ volumes:
 networks:
   superset-net:
     driver: bridge
+  traefik_net:
+    external: true
