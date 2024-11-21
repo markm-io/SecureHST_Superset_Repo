@@ -100,10 +100,10 @@ services:
     volumes: *superset-volumes
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.superset.rule=Host(`superset-vista.apphst.com`)"
+      - "traefik.http.routers.superset.rule=Host(`superset2-vista.apphst.com`)"
       - "traefik.http.routers.superset.service=superset"
       - "traefik.http.routers.superset.entrypoints=websecure"
-      - "traefik.http.routers.superset.tls.certresolver=le"
+      - "traefik.http.routers.superset.tls.certresolver=myresolver"
       - "traefik.http.routers.superset.tls=true"
       - "traefik.http.services.superset.loadbalancer.server.port=8088"
     networks:
