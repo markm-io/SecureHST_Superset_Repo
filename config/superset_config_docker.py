@@ -56,7 +56,10 @@ FEATURE_FLAGS = {
 ALERT_REPORTS_NOTIFICATION_DRY_RUN = False
 ALERT_MINIMUM_INTERVAL = int(timedelta(minutes=10).total_seconds())
 REPORT_MINIMUM_INTERVAL = int(timedelta(minutes=5).total_seconds())
-WEBDRIVER_TYPE = "chrome"
+WEBDRIVER_BASEURL = "http://superset_app:8088/"  # When using docker compose baseurl should be http://superset_app:8088/
+# The base URL for the email report hyperlinks.
+WEBDRIVER_BASEURL_USER_FRIENDLY = os.getenv("WEBDRIVER_BASEURL_USER_FRIENDLY")
+WEBDRIVER_TYPE = "firefox"
 WEBDRIVER_OPTION_ARGS = [
     "--force-device-scale-factor=2.0",
     "--high-dpi-support=2.0",
