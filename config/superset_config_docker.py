@@ -24,16 +24,17 @@
 #
 import os
 from datetime import timedelta
+from superset.tasks.types import ExecutorType
+from superset.superset_typing import CacheConfig
 
 # Customization Configuration
 SECRET_KEY = os.getenv("SECRET_KEY")
 APP_NAME = os.getenv("APP_NAME")
 APP_ICON = "/static/assets/images/custom-logo.png"
 FAVICONS = [{"href": "/app/superset/static/assets/images/custom-favicon.png"}]
-# Setting it to '/' would take the user to '/superset/welcome/'
-LOGO_TARGET_PATH = '/'
-# Specify any text that should appear to the right of the logo
-LOGO_RIGHT_TEXT = os.getenv("LOGO_RIGHT_TEXT")
+LOGO_TARGET_PATH = '/' # Setting it to '/' would take the user to '/superset/welcome/'
+LOGO_RIGHT_TEXT = os.getenv("LOGO_RIGHT_TEXT") # Specify any text that should appear to the right of the logo
+
 # Email configuration
 SMTP_HOST = os.getenv("SMTP_HOST") # change to your host
 SMTP_PORT = os.getenv("SMTP_PORT") # your port, e.g. 587
@@ -45,28 +46,45 @@ SMTP_PASSWORD = os.getenv("SMTP_PASSWORD") # use the empty string "" if using an
 SMTP_MAIL_FROM = os.getenv("SMTP_MAIL_FROM")
 ENABLE_PROXY_FIX = True
 
+REDIS_HOST = os.getenv("REDIS_HOST", "redis")
+REDIS_PORT = os.getenv("REDIS_PORT", "6379")
+REDIS_CELERY_DB = os.getenv("REDIS_CELERY_DB", "0")
+REDIS_RESULTS_DB = os.getenv("REDIS_RESULTS_DB", "1")
+
 # Features Configuration
 SCREENSHOT_LOCATE_WAIT = 10
 SCREENSHOT_LOAD_WAIT = 60
 FEATURE_FLAGS = {
     "ALERT_REPORTS": True,
     "THUMBNAILS": True,
-    "SCHEDULED_REPORTS": True
+    "SCHEDULED_REPORTS": True,
+    "THUMBNAILS_SQLA_LISTENERS": True,
+    "DASHBOARD_VIRTUALIZATION": True,
 }
+
+
+# Thumbnail Configuration
+THUMBNAIL_SELENIUM_USER = "admin"
+THUMBNAIL_EXECUTE_AS = [ExecutorType.SELENIUM]
+
+THUMBNAIL_CACHE_CONFIG: CacheConfig = {
+    'CACHE_TYPE': 'RedisCache',
+    'CACHE_DEFAULT_TIMEOUT': 7 * 86400,  # 7 days
+    'CACHE_KEY_PREFIX': 'thumbnail_',
+    'CACHE_REDIS_HOST': REDIS_HOST,
+    'CACHE_REDIS_PORT': REDIS_PORT,
+    'CACHE_REDIS_DB': REDIS_CELERY_DB
+}
+
 ALERT_REPORTS_NOTIFICATION_DRY_RUN = False
 ALERT_MINIMUM_INTERVAL = int(timedelta(minutes=10).total_seconds())
 REPORT_MINIMUM_INTERVAL = int(timedelta(minutes=5).total_seconds())
 WEBDRIVER_BASEURL = "http://superset_app:8088/"  # When using docker compose baseurl should be http://superset_app:8088/
-# The base URL for the email report hyperlinks.
-WEBDRIVER_BASEURL_USER_FRIENDLY = os.getenv("WEBDRIVER_BASEURL_USER_FRIENDLY")
+WEBDRIVER_BASEURL_USER_FRIENDLY = os.getenv("WEBDRIVER_BASEURL_USER_FRIENDLY") # The base URL for the email report hyperlinks.
 WEBDRIVER_TYPE = "firefox"
-WEBDRIVER_OPTION_ARGS = [
-    "--force-device-scale-factor=2.0",
-    "--high-dpi-support=2.0",
-    "--headless",
-    "--disable-gpu",
-    "--disable-dev-shm-usage",
-    "--no-sandbox",
-    "--disable-setuid-sandbox",
-    "--disable-extensions",
-]
+FILTER_STATE_CACHE_CONFIG = {
+    'CACHE_TYPE': 'RedisCache',
+    'CACHE_DEFAULT_TIMEOUT': 86400,
+    'CACHE_KEY_PREFIX': 'superset_filter_cache',
+    'CACHE_REDIS_URL': 'redis://localhost:6379/0'
+}
